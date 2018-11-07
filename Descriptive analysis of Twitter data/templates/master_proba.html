@@ -1,0 +1,161 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div id="projects_post" class="onePadding">
+
+        <div class="alert alert-success hidden" id="success_alert" role="alert">
+            <p id="success_message"></p>
+        </div>
+        <div class="row">
+            <h3>la probabilité conditionnelle que l’expression E apparaisse dans un tweet sachant que son origine est le pays P.</h3></br>
+            <div class="col-md-12 ">
+                <form>
+                    <div class="form-group col-md-4">
+                        <label for="select_pays_expression">Expression E:</label>
+                        <input id="select_pays_expression" class="form-control">
+                        </input>
+                        <div id="alert"></div>
+                    </div>
+                    <div id="pays_proba" class="form-group col-md-4">
+                        <label for="select_pays_proba">Pays P:</label>
+                        <select id="select_pays_pays_proba" class="select_pays_proba form-control">
+                        </select>
+                    </div>
+                </form>
+                <div id="pays_proba" class="form-group col-md-4">
+                        <label for="exp_pays_id">probabilité :</label>
+                        <div id="exp_pays_id" class="col-md-12" style="height: 38px; padding-top: 7px; border: 1px #8080804d solid; border-radius: 4px; color: green"></div>
+                    </div>
+            </div>
+        </div></br></br></br>
+
+        <div class="row">
+            <h3>la probabilité conditionnelle que l’expression E apparaisse dans un tweet sachant que l’expression F y est citée.</h3></br>
+            <div class="col-md-12 ">
+                <form>
+                    <div class="form-group col-md-4">
+                        <label for="select_exp_expression_e">Expression E:</label>
+                        <textarea id="select_exp_expression_e" class="form-control" style="height: 130px;"></textarea>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="select_exp_expression_f">Expression F:</label>
+                        <textarea id="select_exp_expression_f" class="form-control" style="height: 130px;"></textarea>
+                    </div>
+                </form>
+                <div id="exp_proba" class="form-group col-md-4">
+                    <button type="button" id="exp_proba_btn" class="btn btn-primary btn-lg btn-block" style="display: block; width: 100%; margin-top: 24px; margin-bottom: 13px;">Envoyer ma demande</button>
+                    <label for="exp_exp_id">probabilité :</label>
+                    <div id="exp_exp_id" class="col-md-12" style="height: 38px; padding-top: 7px; border: 1px #8080804d solid; border-radius: 4px; color: green"></div>
+                </div>
+                
+            </div>
+        </div>
+
+        <div class="row">
+            <h3>la probabilité conditionnelle que l’expression E apparaisse dans un tweet sachant que l’expression F y est citée et que son origine est le pays P.</h3></br>
+            <div class="col-md-12 ">
+                <form>
+                    <div class="form-group col-md-4">
+                        <label for="select_exppays_expression_e">Expression E:</label>
+                        <textarea id="select_exppays_expression_e" class="form-control" style="height: 207px;"></textarea>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="select_exppays_expression_f">Expression F:</label>
+                        <textarea id="select_exppays_expression_f" class="form-control" style="height: 207px;"></textarea>
+                    </div>
+                    <div id="pays_proba" class="form-group col-md-4">
+                        <label for="select_pays_proba">Pays P:</label>
+                        <select id="select_pays_exp_proba" class="select_pays_proba form-control">
+                        </select>
+                    </div>
+                </form>
+                <div id="exp_proba" class="form-group col-md-4">
+                    <button type="button" id="exppays_proba_btn" class="btn btn-primary btn-lg btn-block" style="display: block; width: 100%; margin-top: 0px; margin-bottom: 33px;">Envoyer ma demande</button>
+                    <label for="exppays_exp_id">probabilité :</label>
+                    <div id="exppays_exp_id" class="col-md-12" style="height: 38px; padding-top: 7px; border: 1px #8080804d solid; border-radius: 4px; color: green"></div>
+                </div>
+                
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.5.1/chosen.jquery.min.js"></script>
+<script>
+    $(function () {
+        $.get("/api/pays/all", function (data) {
+            var pays = $.parseJSON(data)
+            $('.select_pays_proba').append($('<option>', {
+                    value: "all",
+                    text: "sélectionner un pays"
+                }));
+            $.each(pays, function (i, item) {
+                $('.select_pays_proba').append($('<option>', {
+                    value: i,
+                    text: i
+                }));
+            });
+            /*$('#select_pays_proba').trigger("change")*/
+        })
+
+        $('#exppays_proba_btn').click(function () {
+            expe = $('#select_exppays_expression_e').val();
+            expf = $('#select_exppays_expression_f').val();
+            pays = $('#select_pays_exp_proba').val();
+            pays_exp_proba("",pays,expe,expf);
+        })
+
+        $('#exp_proba_btn').click(function () {
+            
+            expe = $('#select_exp_expression_e').val();
+            expf = $('#select_exp_expression_f').val();
+            pays_exp_proba("exp",expf,expe,"");
+        })
+
+        $('#select_pays_pays_proba').on("change", function () {
+            exp = $('#select_pays_expression').val();
+            pays = this.value;
+            $('#alert').empty();
+            pays_exp_proba("pays",pays,exp,"");
+        });
+
+    });
+
+    
+
+function pays_exp_proba(slug,pays,exp,term) {
+    if (slug == "pays") {
+        if (pays != "all" && exp != "") {
+            $.get("/api/proba/pays/" + pays + "/" + exp, function (data) {
+                $("#exp_pays_id").html(data["proba"].toFixed(4));
+            })
+        }
+        else if (pays == "all" && exp != ""){
+            $("#exp_pays_id").empty();
+        }
+        else {
+            $('#alert').append($('<small class="text-danger">case vide</small>'));
+            $("#select_pays_expression").addClass("is-invalid");
+        }
+    }
+    else if (slug == "exp") {
+        $.get("/api/proba/exp/"+pays+"/"+exp, function (data) {
+            $("#exp_exp_id").html(data["proba"].toFixed(4));
+        })
+    }
+    else {
+        $.get("/api/proba/exppays/"+pays+"/"+exp+"/"+term, function (data) {
+            console.log(data)
+            $("#exppays_exp_id").html(data["proba"].toFixed(4));
+        })
+    }
+}
+
+
+    $(".chosen").chosen();
+</script>
+    
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div id="projects_post">
+        <div class="alert alert-success hidden" id="success_alert" role="alert">
+            <p id="success_message"></p>
+        </div>
+        <div class="row">
+            <div class="alert alert-success hidden" id="success_alert" role="alert">
+                <p id="success_message"></p>
+            </div>
+
+            <div class="row col-md-12">
+                <div style="text-align: center; ">
+                    <iframe width="100%" height="600"
+                            src="https://www.youtube.com/embed/kIe5CHbOZVE?rel=0&amp;controls=0&amp;showinfo=0&amp;autoplay=1 "
+                            frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                </div>
+            </div>
+
+            <div id="frame_box" class="row col-md-12"></br></br></br>
+                <div style="text-align: center">
+                    <iframe src='https://univcadiayyad-my.sharepoint.com/personal/younes_jaouiri_edu_uca_ma/_layouts/15/WopiFrame.aspx?sourcedoc={9eeb8242-4884-4825-bf2f-368aba20ed0c}&action=embedview&wdAr=1.3333333333333333'
+                            width='722px' height='565px' frameborder='0'>This is an embedded <a target='_blank'
+                                                                                                href='https://office.com'>Microsoft
+                        Office</a> presentation, powered by <a target='_blank' href='https://office.com/webapps'>Office
+                        Online</a>.
+                    </iframe>
+                </div>
+            </div>
+
+            <div class="row col-md-12" style="padding-left: 82px;"></br></br></br>
+                <figure class="snip1336">
+                    <img src="{{ url_for('static', filename='img/o.jpg') }}" alt="sample87"/>
+                    <figcaption>
+                        <img src="{{ url_for('static', filename='img/jaouirii.jpg') }}" alt="profile-sample4"
+                             class="profile"/>
+                        <h2>JAOUIRI Younes<span>étudiant</span></h2>
+                        <p>Licencier en big data et actuellement étudiant en master science de données</p>
+                        <a href="https://www.facebook.com/younes.saad.77" target="_blank" class="follow">Follow</a>
+                        <a href="#" class="info">More Info</a>
+                    </figcaption>
+                </figure>
+                <figure class="snip1336">
+                    <img src="{{ url_for('static', filename='img/basta_bg.jpg') }}" alt="sample87"/>
+                    <figcaption>
+                        <img src="{{ url_for('static', filename='img/bastaa.jpg') }}" alt="profile-sample4"
+                             class="profile"/>
+                        <h2>BASTA Mohammed<span>étudiant</span></h2>
+                        <p>Licencier en SMI et actuellement étudiant en master science de données</p>
+                        <a href="https://www.facebook.com/profile.php?id=100006614358762" target="_blank"
+                           class="follow">Follow</a>
+                        <a href="#" class="info">More Info</a>
+                    </figcaption>
+                </figure>
+                <figure class="snip1336">
+                    <img src="{{ url_for('static', filename='img/classe.jpg') }}" alt="sample87"/>
+                    <figcaption>
+                        <img src="{{ url_for('static', filename='img/master.jpg') }}" alt="profile-sample4"
+                             class="profile"/>
+                        <h2>DATA-SCIENCE<span>master</span></h2>
+                        <p>Master spéciallisé appartenant au département informatique du FSSM</p>
+                        <a href="https://www.facebook.com/datasciencefssm/?ref=bookmarks" target="_blank" class="follow">Follow</a>
+                        <a href="#" class="info">More Info</a>
+                    </figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+
+{% endblock %}

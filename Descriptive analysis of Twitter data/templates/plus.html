@@ -1,0 +1,249 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div id="projects_post" class="onePadding">
+
+        <div class="alert alert-success hidden" id="success_alert" role="alert">
+            <p id="success_message"></p>
+        </div>
+
+
+        <div class="row">
+            <div class="region_div col-lg-10 col-lg-offset-2">
+                <form>
+                    <div class="form-group col-md-4">
+                        <label for="nom">Region </label>
+                        <select id="select_region" class="form-control">
+                        </select>
+
+                    </div>
+                    <div id="pays_div" class="form-group col-md-4">
+                        <label for="nom">Pays </label>
+                        <select id="select_pays" class="form-control">
+                        </select>
+
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-lg-12">
+                <div id="nb_box" class="col-md-4">
+
+                    <div id="txt_plus"> Utilisateurs Actifs</div>
+                    <div id="must_user">
+
+                    </div>
+
+                </div>
+                <div class="col-md-7">
+                    <div id="txt_plus"> les Langues les plus utilisées</div>
+                    <div id="pie_count_id" style=" margin-top:20px;height: 500px;"></div>
+                </div>
+            </div>
+
+            <div id="gender_id" class="col-md-12">
+                <div id="nb_box1" class="col-md-4">
+
+                    <div id="txt_plus"> les hash-tags les plus utilisées</div>
+                    <div id="must_hash">
+
+                    </div>
+
+                </div>
+                <div id="nb_box1" class="col-md-4">
+
+                    <div id="txt_plus"> les Utilisateurs les plus tagés</div>
+                    <div id="must_mention">
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="col-lg-11 col-lg-offset-1" style="margin-top: 20px">
+                <div id="map" >
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script lang="text/javascript" src="{{ url_for('static', filename='scripts/jqcloud-1.0.4.js') }}"></script>
+    <script>
+        $(function () {
+            $('#select_region').on("change", function () {
+                if (this.value == "all") {
+                    $('#pays_div').hide(1000);
+                    create_pie("all", "all");
+                    must_user("all", "all");
+                }
+                else {
+                    $('#select_pays').empty();
+                    $.get("/api/get_pays/" + this.value, function (data) {
+                        $('#select_pays').append($('<option>', {
+                            value: 'all',
+                            text: 'All countries'
+                        }));
+                        $.each(data, function (i, item) {
+                            $('#select_pays').append($('<option>', {
+                                value: i,
+                                text: item
+                            }));
+                        });
+                    });
+                    $('#pays_div').show(500);
+                    create_pie("region", this.value);
+                    must_user("region", this.value);
+                }
+            });
+            $('#select_pays').on("change", function () {
+                if (this.value == "all") {
+                    var region = $('#select_region').val();
+                    create_pie("region", this.value);
+                    must_user("region", this.value);
+                }
+                else {
+
+                    create_pie("pays", this.value);
+                    must_user("pays", this.value);
+                }
+            });
+            $.get("/api/get_regions", function (data) {
+                $('#select_region').append($('<option>', {
+                    value: 'all',
+                    text: 'All regions'
+                }));
+                $.each(data, function (i, item) {
+                    $('#select_region').append($('<option>', {
+                        value: i,
+                        text: item
+                    }));
+                });
+                $('#select_region').trigger("change")
+            })
+        });
+        function create_pie(slug, place) {
+            var url = "all/all";
+            if (slug == 'region' && place != "all") {
+                url = "region/" + place
+            }
+            else if (slug == 'pays' && place != "all") {
+                url = "pays/" + place
+            }
+            $.get("/api/lang/" + url, function (data) {
+                var first = [["langue", "tweets"]];
+                {#                var obj = $.parseJSON(data);#}
+                $.each(data, function (i, j) {
+                    first.push([i, j])
+                });
+
+                google.charts.load('current', {'packages': ['corechart']});
+                google.charts.setOnLoadCallback(drawChart);
+                function drawChart() {
+                    var data = google.visualization.arrayToDataTable(first);
+                    var options = {is3D: true};
+                    {#                    var options = {title: 'les Langues  les plus utilisées   ', is3D: true};#}
+                    var chart = new google.visualization.PieChart(document.getElementById('pie_count_id'));
+                    chart.draw(data, options);
+                }
+
+                $("#pie_count_id").hide().fadeIn(2000)
+            })
+        }
+        function must_user(slug, place) {
+            var url = "all/all";
+            if (slug == 'region' && place != "all") {
+                url = "region/" + place
+            }
+            else if (slug == 'pays' && place != "all") {
+                url = "pays/" + place
+            }
+
+            $.get("/api/users/" + url, function (data) {
+                {#                var obj = $.parseJSON(data);#}
+                $('#must_user').empty().append('<table cellpadding="0" cellspacing="0" border="0" class="table"  id="example"> <thead> <tr> <th></th> <th></th>  </tr></thead><tbody id="body_table"></tbody></table>');
+
+                $.each(data, function (i, j) {
+                    $('#must_user #example').find('tbody').append($(' <tr><td>' + j + '</td><td>' + i + '</td></tr>'));
+                    {#                    first.push([i, j])#}
+                });
+                $('#must_user #example').DataTable(
+                    {
+                        "order": [[0, "desc"]],
+                        "paging": false,
+                        "info": false,
+                        "iDisplayLength": 5,
+                        "bFilter": false,
+                        "bLengthChange": false
+                    }
+                );
+
+
+            });
+            $.get("/api/hash/" + url, function (data) {
+                {#                var obj = $.parseJSON(data);#}
+                $('#must_hash').empty().append('<table cellpadding="0" cellspacing="0" border="0" class="table"  id="example"> <thead> <tr> <th></th> <th></th>  </tr></thead><tbody id="body_table"></tbody></table>');
+
+                $.each(data, function (i, j) {
+                    $('#must_hash #example').find('tbody').append($(' <tr><td>' + j + '</td><td>' + i + '</td></tr>'));
+                    {#                    first.push([i, j])#}
+                });
+                $('#must_hash #example').DataTable(
+                    {
+                        "order": [[0, "desc"]],
+                        "paging": false,
+                        "info": false,
+                        "iDisplayLength": 5,
+                        "bFilter": false,
+                        "bLengthChange": false
+                    }
+                );
+
+
+            });
+            $.get("/api/mention/" + url, function (data) {
+                {#                var obj = $.parseJSON(data);#}
+                $('#must_mention').empty().append('<table cellpadding="0" cellspacing="0" border="0" class="table"  id="example"> <thead> <tr> <th></th> <th></th>  </tr></thead><tbody id="body_table"></tbody></table>');
+
+                $.each(data, function (i, j) {
+                    $('#must_mention #example').find('tbody').append($(' <tr><td>' + j + '</td><td>' + i + '</td></tr>'));
+                    {#                    first.push([i, j])#}
+                });
+                $('#must_mention #example').DataTable(
+                    {
+                        "order": [[0, "desc"]],
+                        "paging": false,
+                        "info": false,
+                        "iDisplayLength": 5,
+                        "bFilter": false,
+                        "bLengthChange": false
+                    }
+                );
+
+
+            });
+            $.get("/api/cloud/" + url, function (data) {
+                {#                var obj = $.parseJSON(data);#}
+
+                var word_array = [];
+                $.each(data, function (i, j) {
+                    word_array.push({text: i, weight: j})
+                });
+                $('#map').empty().jQCloud(word_array,{
+                    height: 500,
+                    width:1070,
+                    autoResize: true,
+                    delay: 50
+                });
+            });
+
+        }
+    </script>
+    {#<script lang="text/javascript" src="{{url_for('static', filename='scripts/app.js')}}">#}
+    {#</script>#}
+{% endblock %}

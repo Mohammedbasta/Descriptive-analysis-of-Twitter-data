@@ -1,0 +1,356 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div id="projects_post" class="onePadding">
+
+        <div class="alert alert-success hidden" id="success_alert" role="alert">
+            <p id="success_message"></p>
+        </div>
+        <div class="row">
+            <div class="region_div col-lg-10 col-lg-offset-2">
+                <form>
+                    <div class="form-group col-md-4">
+                        <label for="nom">Region </label>
+                        <select id="select_region" class="form-control">
+                        </select>
+
+                    </div>
+                    <div id="pays_div" class="form-group col-md-4">
+                        <label for="nom">Pays </label>
+                        <select id="select_pays" class="form-control">
+                        </select>
+
+                    </div>
+                </form>
+            </div>
+
+            <div id="expression_id" class="col-md-11 ">
+
+                <div class="form-group col-md-4 col-lg-offset-2">
+                    <label for="term">Expression </label>
+                    <input id='term' name="term" class="form-control"/>
+
+                </div>
+                <div id="pays_div" class="form-group col-lg-3">
+                    <label for=""> </label>
+                    <button id="btn_search" class="form-control" data-toggle="modal" data-target="#exampleModal">
+                        Search
+                    </button>
+
+                    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"
+                         aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content" id ='box'>
+                                <div class="modal-header">
+                                    <h3 class="modal-title" id="exampleModalLabel"> Expression : <span
+                                            class="model_term"></span></h3>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+
+                                    <div class="expression "> nombre de tweets : <span
+                                            class="nb_frame"></span></div>
+                                    <div class="expression "> nombre d'apparition de l'expression : <span
+                                            class="nb_apparition"></span></div>
+                                    <div class="expression "> nombre de tweets contenants l'expression : <span
+                                            class="nb_tweet"></span></div>
+                                    <div class="expression "> Moyenne generale : <span
+                                            class="moy_gen"></span></div>
+                                    <div class="expression "> Moyenne d'apparition : <span
+                                            class="moy_tweet"></span></div>
+                                </div>
+                                <div class="modal-footer">
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-lg-12">
+                <div id="nb_box" class="col-md-4">
+                    <div id="count_id" class="odometer"></div>
+
+                    <div id="txt_tweet"> tweets</div>
+
+                </div>
+                <div id="pie_count_id" style=" margin-top:20px;height: 500px;" class="col-md-7">
+                </div>
+            </div>
+            <div class="col-lg-11 col-lg-offset-1" style="margin-top: 20px">
+                <div id="map" style="height: 500px;">
+                </div>
+            </div>
+
+            <div id="gender_id" class="col-md-12 col-lg-offset-1">
+                <div id="pie_hf_id" style="height: 500px;" class="col-md-5 ">
+                </div>
+                <div id="hf_id" class="col-md-4 col-lg-offset-1">
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script lang="text/javascript" src="{{ url_for('static', filename='scripts/odometer.min.js') }}"></script>
+
+    <script>
+        $(function () {
+            $('#btn_search').on("click", function () {
+                term = $('#term').val();
+                region = $('#select_region').val();
+                pays = $('#select_pays').val();
+                slug = "all";
+                place = "all";
+                if (region != "all" && pays == "all") {
+                    slug = "region";
+                    place = region;
+                }
+                else if (region != "all" && pays != "all") {
+                    slug = "pays";
+                    place = pays;
+                }
+                term_info(slug, place, term);
+
+            });
+            function show_count(slug, place) {
+                var url = "all/all";
+                if (slug == 'region' && place != "all") {
+                    url = "region/" + place
+                }
+                else if (slug == 'pays' && place != "all") {
+                    url = "pays/" + place
+                }
+                /*
+                 console.log(url)*/
+                $.get("/api/tweet/" + url, function (data) {
+
+                    $("#count_id").html(data["total"])
+                })
+            }
+
+            $('#select_region').on("change", function () {
+                if (this.value == "all") {
+                    $('#pays_div').hide(1000);
+                    show_count("all", "all");
+                    create_pie("all");
+                    create_map("all");
+                    gender_show("all", "all")
+                }
+                else {
+                    $('#select_pays').empty();
+                    $.get("/api/get_pays/" + this.value, function (data) {
+                        $('#select_pays').append($('<option>', {
+                            value: 'all',
+                            text: 'All countries'
+                        }));
+                        $.each(data, function (i, item) {
+                            $('#select_pays').append($('<option>', {
+                                value: i,
+                                text: item
+                            }));
+                        });
+                    });
+                    $('#pays_div').show(500);
+                    show_count("region", this.value);
+                    create_pie(this.value);
+                    create_map(this.value);
+                    gender_show("region", this.value)
+                }
+            });
+            $('#select_pays').on("change", function () {
+                if (this.value == "all") {
+                    var region = $('#select_region').val()
+                    show_count("region", region)
+                }
+                else {
+                    show_count("pays", this.value);
+                    gender_show("pays", this.value)
+                }
+            });
+            $.get("/api/get_regions", function (data) {
+                $('#select_region').append($('<option>', {
+                    value: 'all',
+                    text: 'All regions'
+                }));
+                $.each(data, function (i, item) {
+                    $('#select_region').append($('<option>', {
+                        value: i,
+                        text: item
+                    }));
+                });
+                $('#select_region').trigger("change")
+            })
+        });
+
+        function create_pie(place) {
+            var url = "api/region";
+            if (place != "all") {
+                url = "/api/pays/" + place
+            }
+
+            $.get(url, function (data) {
+                var first = [["region", "tweets"]];
+                var obj = $.parseJSON(data);
+                $.each(obj, function (i, j) {
+                    first.push([i, j])
+                });
+
+                google.charts.load('current', {'packages': ['corechart']});
+                google.charts.setOnLoadCallback(drawChart);
+                function drawChart() {
+                    var data = google.visualization.arrayToDataTable(first);
+                    var options = {title: 'Tweets par Regions ', is3D: true};
+                    var chart = new google.visualization.PieChart(document.getElementById('pie_count_id'));
+                    chart.draw(data, options);
+                }
+
+                $("#pie_count_id").hide().fadeIn(2000)
+            })
+        }
+
+        function create_map(place) {
+
+            var url = "all";
+            var first = [['Country', 'tweet']];
+            if (place != "all") {
+                url = place;
+                if (place == 'middle_east_north_africa') {
+                    first.push(['EH', 52]);
+                }
+            } else {
+                first.push(['EH', 52]);
+            }
+            $.get("/api/pays/" + place, function (data) {
+
+                var obj = $.parseJSON(data);
+                $.each(obj, function (i, j) {
+                    first.push([i, j])
+                });
+                google.charts.load('current', {
+                    'packages': ['geochart'],
+                    'mapsApiKey': 'AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY'
+                });
+                google.charts.setOnLoadCallback(drawRegionsMap);
+
+                function drawRegionsMap() {
+                    var data = google.visualization.arrayToDataTable(first);
+                    var options = {
+                        colorAxis: {
+                            colors: ['#f2cdcc', '#642524']
+                        }
+                    };
+                    var chart = new google.visualization.GeoChart(document.getElementById('map'));
+                    chart.draw(data, options);
+                    $("#map").hide().fadeIn(1000)
+                }
+            })
+
+        }
+
+        function gender_show(slug, place) {
+            var url = "all/all";
+            if (slug == 'region' && place != "all") {
+                url = "region/" + place
+            }
+            else if (slug == 'pays' && place != "all") {
+                url = "pays/" + place
+            }
+            $.get("/api/gender/" + url, function (data) {
+                var first = [["gender", "number"]];
+                var obj = $.parseJSON(data);
+                $('#hf_id').empty();
+                $.each(obj, function (i, j) {
+                    first.push([i, j]);
+                    $('#hf_id').append($('<div class="gender"><span class="gender_type"> ' + i + '  : </span><span class="gender_number"> ' + j + ' </span></div>'));
+                });
+
+                google.charts.load('current', {'packages': ['corechart']});
+                google.charts.setOnLoadCallback(drawChart);
+                function drawChart() {
+                    var data = google.visualization.arrayToDataTable(first);
+                    var options = {
+                        title: 'Tweets par sexe ',
+                        colors: ['#1168B9', '#7A247F', "#D44950"],
+                        pieHole: 0.4,
+                    };
+                    var chart = new google.visualization.PieChart(document.getElementById('pie_hf_id'));
+                    chart.draw(data, options);
+                    $("#pie_hf_id").hide().fadeIn(2000)
+                }
+            })
+        }
+
+        function term_info(slug, place, term) {
+
+            var url = "all/all";
+            if (slug == 'region' && place != "all") {
+                url = "region/" + place
+            }
+            else if (slug == 'pays' && place != "all") {
+                url = "pays/" + place
+            }
+            $.get("/api/count/" + url + "/" + term, function (data) {
+                $(".model_term").html('" ' + term + ' "');
+
+                $(".nb_frame").html(data["nb_frame"]);
+                $(".moy_gen").html(data["moyenne_generale"].toFixed(4) + " %");
+                $(".moy_tweet").html(data["moyenne_tweet"].toFixed(2) + " fois par tweet");
+                $(".nb_tweet").html(data["nb_tweet"]);
+                $(".nb_apparition").html(data["total"]);
+                $('.modal-footer').empty().append('<table cellpadding="0" cellspacing="0" border="0" class="table"  id="example"> <thead> <tr> <th></th>  </tr></thead><tbody id="body_table"></tbody></table>');
+                $.each(data["tweets"], function (i, j) {
+                    var arr = i.split('-');
+                    $('#example').find('tbody').append($(' <tr class="tbl-' + arr[1] + '"><td>' + j + '</tr>'));
+                });
+
+                $('#example').DataTable(
+                    {
+                        "iDisplayLength": 6,
+                        "bLengthChange": false,
+                        "bDestroy": true,
+                        "language": {
+                            "decimal": "",
+                            "emptyTable": "Aucune Donnée Disponible",
+                            "info": "Affichage _START_ à _END_ de _TOTAL_ Entrées",
+                            "infoEmpty": "Affichage 0 à 0 de 0 Entrées",
+                            "infoFiltered": "(Filtré de _MAX_ Entrées Totales)",
+                            "lengthMenu": "Montrer _MENU_ Entrées",
+                            "loadingRecords": "Chargement...",
+                            "processing": "En Traitement...",
+                            "search": "Chercher:",
+                            "zeroRecords": "Aucun enregistrements correspondants trouvés",
+                            "paginate": {
+                                "first": "Premier",
+                                "last": "Dernier",
+                                "next": "Suivant",
+                                "previous": "Précédent"
+                            },
+                            "aria": {
+                                "sortAscending": ": Activer pour trier la colonne en hausse",
+                                "sortDescending": ": Activer pour trier la colonne en descendant"
+                            }
+
+                        }
+                    }
+                ).draw();
+
+
+            });
+
+
+        }
+    </script>
+    {#<script lang="text/javascript" src="{{url_for('static', filename='scripts/app.js')}}">#}
+    {#</script>#}
+{% endblock %}

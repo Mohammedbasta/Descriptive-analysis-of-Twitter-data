@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% block head %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/dataTables.bootstrap.min.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/odometer-theme-car.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/font-awesome.min.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/jqcloud.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"/>
+        <title>Master DS </title>
+    {% endblock %}
+</head>
+<body>
+<div id="container">
+
+    {% block navigation %}
+        <!-- Static navbar -->
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                            aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="{{ url_for('index') }}"><img
+                            src="{{ url_for('static', filename='img/logo.png') }}" alt=""></a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+
+                        {% if selected_menu_item == "q1" %}
+                            <li class="active"><a href="#">Question 1 - 5 </a></li>
+                        {% else %}
+                            <li><a href="{{ url_for('mst') }}">Question 1 - 5 </a></li>
+                        {% endif %}
+
+                        {% if selected_menu_item == "q2" %}
+                            <li class="active"><a href="#">Question 6 - 7</a></li>
+                        {% else %}
+                            <li><a href="{{ url_for('proba') }}">Question 6 - 7</a></li>
+                        {% endif %}
+
+                        {% if selected_menu_item == "q3" %}
+                            <li class="active"><a href="#">Information</a></li>
+                        {% else %}
+                            <li><a href="{{ url_for('page_plus') }}">Informations</a></li>
+                        {% endif %}
+
+
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    {% endblock %}
+
+    {% block content %}
+
+    {% endblock %}
+
+    <div class="footer">
+        Younes JAOUIRI &ensp; &ensp; - &ensp; &ensp; Mohammed BASTA &ensp; &ensp; - &ensp; &ensp; Statistiques &ensp;
+        &ensp; - &ensp; &ensp; Master DS &ensp; &ensp; - &ensp; &ensp; 2017/2018
+    </div>
+</div>
+
+
+{% block scripts %}
+    {#    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>#}
+    {#    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>#}
+
+    <script lang="text/javascript" src="{{ url_for('static', filename='scripts/jquery.js') }}"></script>
+    <script lang="text/javascript" src="{{ url_for('static', filename='scripts/bootstrap.js') }}"></script>
+    <script lang="text/javascript"
+            src="{{ url_for('static', filename='scripts/dataTables.bootstrap.min.js') }}"></script>
+    <script lang="text/javascript" src="{{ url_for('static', filename='scripts/jquery.dataTables.min.js') }}"></script>
+    <script lang="text/javascript" src="{{ url_for('static', filename='scripts/app.js') }}"></script>
+{% endblock %}
+
+
+</body>
+</html>
